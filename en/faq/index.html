@@ -1,0 +1,67 @@
+<!--#set var="titulek" value="Frequently asked questions" -->
+<!--#set var="obarvi" value="menu-8" -->
+<!--#include virtual="/hlavicka.html" -->
+
+<div class="container">
+
+<h1 class="text-center">Common questions</h1>
+
+<p class="text-uppercase faq-q"><strong>You say you're a community, what does that mean?</strong></p>
+
+<p class="faq-a">Our members come together and communicate on different platforms. We have <a href="https://kb.vpsfree.cz" target="_blank">our knowledge base</a> for sharing how-tos and ways of solving concrete issues, <a href="https://discourse.vpsfree.cz/t/welcome-to-vpsfree-cz-discourse/5" target="_blank">Discourse</a> for more lively discussions and cooperative problem solving; and then there's a general <a href="https://kb.vpsfree.org/information/chat" target="_blank">IRC channel and Matrix room</a> for socializing and all things alike. We also meet <a href="https://foto.vpsfree.cz/?f=2019%2FClenska_schuze%2FIMG_8128.jpg" target="_blank" title="We celebrated 10 years">physically</a> from time to time, to share knowledge over a <a href="https://foto.vpsfree.cz/?f=2018%2FLiberecke_Pyvo%2FIMG_20180214_183836.jpg" target="_blank">beer</a>, or go deep down on <a href="https://foto.vpsfree.cz/?f=2016%2FNetwork_hackaton%2FWP_20161203_17_13_02_Pro.jpg" target="_blank" title="Hackaton in progress">technical topics</a> and solve real tech issues.</p>
+
+<p class="text-uppercase faq-q"><strong>I want to run Windows server or another system on my VPS. Is it possible?</strong></p>
+
+<p class="faq-a">It is possible if you will enable full virtualization with KVM. We have <a href="https://kb.vpsfree.org/manuals/vps/kvm" target="_blank">a detailed manual</a>.</p>
+
+<p class="text-uppercase faq-q"><strong>Can I run Docker?</strong></p>
+
+<p class="faq-a">Yes, you can natively run it on our <a href="https://kb.vpsfree.org/information/vpsadminos" target="_blank">vpsAdminOS</a> server.</p>
+
+<p class="text-uppercase faq-q"><strong>I need more RAM or HDD space. Can I get more of it?</strong></p>
+
+<p class="faq-a">The VPS resources can be only be doubled, trippled, etc., together with the membership fee. So for example you can have 8 GB RAM and 240 GB HDD or 12 GB RAM and 360 GB HDD for 2 or 3 times the membership fee respectively.  This will also increase CPU cores to 16 or 24, respectively. Or you can increase just HDD space for 0.08€/GB.</p>
+
+<p class="text-uppercase faq-q"><strong>Can a company be a member?</strong></p>
+
+<p class="faq-a">Yes, it is possible. Just <a href="/registration/">fill out the registration form</a> for companies and include the name of the person who will manage the VPS and whom we can contact. Contact support if you will need an invoice.</p>
+
+<p class="text-uppercase faq-q"><strong>Is it possible to get an invoice?</strong></p>
+
+<p class="faq-a">Please send your billing information to our support team and we will create an invoice for you. You must ask us every every billing cylce, by sending the request for an invoice in the payment reminder from vpsAdmin.</p>
+
+<p class="text-uppercase faq-q"><strong>Can you setup for me a reverse DNS record for my IP addresses?</strong></p>
+
+<p class="faq-a">You can configure reverse records in VPS details in vpsAdmin. See our <a href="https://kb.vpsfree.org/manuals/vps/rdns" target="_blank">PTR manual</a> for more information.</p>
+
+<p class="text-uppercase faq-q"><strong>What domain should I use in my reverse DNS record?</strong></p>
+
+<p class="faq-a">Read our <a href="https://kb.vpsfree.org/manuals/vps/rdns" target="_blank">manual about reverse DNS records</a> and our <a href="https://kb.vpsfree.org/manuals/server/postfix" target="_blank">manual for mail servers</a> in our knowledge base.</p>
+
+<p class="text-uppercase faq-q"><strong>Is it possible to extend the life of my Playground VPS beyond 30 days?</strong></p>
+
+<p class="faq-a">Please contact our support team.</p>
+
+<p class="text-uppercase faq-q"><strong>I want to use my own kernel in my VPS, is it possible? </strong></p>
+
+<p class="faq-a">We use our own <a href="https://kb.vpsfree.org/information/vpsadminos" target="_blank">vpsAdminOS container technology</a>. It means that all VPSs share one kernel with the host. If you really need your own kernel, you can use <a href="https://kb.vpsfree.org/manuals/vps/kvm" target="_blank">full KVM virtualitazion</a> inside the VPS.</p>
+
+<p class="text-uppercase faq-q"><strong>I forgot my login / password for vpsAdmin, what can I do?</strong></p>
+
+<p class="faq-a">Just contact our <a href="mailto:support@vpsfree.org">support team</a> using the e-mail address registered in vpsAdmin. We will reset your password.</p>
+
+<p class="text-uppercase faq-q"><strong>Can I have a swap file?</strong></p>
+
+<p class="faq-a">We assign swap only if you need to install the Oracle database and then only for the installation. Oracle does not need swap after installation. Please contact support if you need it.</p>
+
+<p class="text-uppercase faq-q"><strong>My VPS is not working, what can I do?</strong></p>
+
+<p class="faq-a">Check <a href="https://status.vpsf.cz" target="_blank">status.vpsf.cz</a> for current issues on our infrastructure. Reported maintenances and outages can be seen in <a href="https://vpsadmin.vpsfree.cz/?page=outage&action=list" target="_blank">vpsAdmin</a>. If you have a problem with the system inside VPS, you can use the <a href="https://kb.vpsfree.org/manuals/vps/console" target="_blank">remote console</a>. See also the article about <a href="https://kb.vpsfree.org/manuals/vps/vpsadminos/recovery" target="_blank">recovering a VPS</a> in our knowledge base.</p>
+
+<p class="text-uppercase faq-q"><strong>What if I will be late with a payment?</strong></p>
+
+<p class="faq-a">In that case please contact our support team and we will handle it. It is really important to write us in time, otherwise your membership might be suspended.</p>
+
+</div>
+
+<!--#include virtual="/paticka.html" -->

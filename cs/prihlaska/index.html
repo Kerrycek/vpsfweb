@@ -1,0 +1,25 @@
+<!--#set var="h1" value="Přihláška" -->
+<!--#include virtual="hlavicka.html" -->
+<form action="osoba.php" method="post">
+
+<div class="row">
+	<div class="col-xs-12 form-group">
+		<label for="person">Osoba</label>
+		<select class="form-control" id="entity_type" name="entity_type">
+			<option disabled selected>Fyzická nebo právnická osoba</option>
+			<option value="fyzicka">Fyzická</option>
+			<option value="pravnicka">Právnická</option>
+		</select>
+	</div>
+
+</div>
+
+<div id="form-placeholder"></div>
+
+<div class="row">
+  <input class="btn btn-default" type="submit" id="continue" name="continue" value="Pokračovat">
+</div>
+
+</form>
+
+<!--#include virtual="paticka.html" -->

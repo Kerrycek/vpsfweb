@@ -1,0 +1,4 @@
+<?php
+define ('API_URL', 'https://api.vpsfree.cz');
+
+error_reporting(0);

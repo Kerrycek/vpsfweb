@@ -1,0 +1,181 @@
+<!--#set var="titulek" value="VPS parameters" -->
+<!--#set var="obarvi" value="menu-6" -->
+<!--#include virtual="/hlavicka.html" -->
+
+<div class="container">
+	<div class="row">
+
+		<div class="col-md-12">
+			<h1 class="text-center">Parameters</h1>
+			<p>
+				We're maintaining a shared environment, in which every member can utilize his assigned resources.
+				The available resources can be divided into multiple VPS.
+				Additional resources can be gained by inreasing the <a href="https://kb.vpsfree.org/information/membership_fees#what_the_membership_fee_is_composed_of" target="_blank">membership fee</a>.
+			</p>
+		</div>
+
+	</div>
+
+	<div class="row">
+
+		<div class="col-md-4 text-center">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">Virtual server</h2>
+				</div>
+				<div class="panel-body text-center parametry">
+					<table class="table-params">
+							<tr>
+								<td class="doprava">CPU:</td>
+								<td class="dolava"><strong>8&nbsp;cores</strong></td>
+							</tr>
+							<tr>
+								<td class="doprava">RAM:</td>
+								<td class="dolava"><strong>4&nbsp;GB</strong></td>
+							</tr>
+
+							<tr>
+								<td class="doprava">SSD:</td>
+								<td class="dolava"><strong>120&nbsp;GB</strong></td>
+							</tr>
+							<tr>
+								<td class="doprava">IPv4:</td>
+								<td class="dolava"><strong>1&times;</strong></td>
+							</tr>
+							<tr>
+								<td class="doprava">IPv6:</td>
+								<td class="dolava"><strong>/64</strong> or upon request</td>
+							</tr>
+
+							<tr>
+								<td class="doprava">Connectivity:</td>
+								<td class="dolava">Prague&nbsp;<strong>1&nbsp;Gbps</strong>,<br>Brno&nbsp;<strong>300&nbsp;Mbps</strong></td>
+							</tr>
+
+							<tr>
+								<td class="text-center" colspan="2"><strong>Remote console</strong></td>
+							</tr>
+							<tr>
+								<td class="text-center" colspan="2"><strong>Daily backups</strong></td>
+							</tr>
+						</table>
+				</div>
+				<div class="panel-footer"><a href="https://kb.vpsfree.org/information/vps_params" target="_blank">More info »</a></div>
+			</div>
+		</div>
+
+		<div class="col-md-4 text-center">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">Playground VPS</h2>
+				</div>
+				<div class="panel-body parametry">
+					<p>Playground VPSs are virtual servers with similar parameters as our standard virtual servers, but with a limited lifetime of one month. They run on different hardware in a different IP address space.</p>
+
+				<p>You can clone a production server into the playground if you want to try some configuration changes. You don't have to set up the playground VPS from the scratch.</p>
+				</div>
+				<div class="panel-footer"><a href="https://kb.vpsfree.org/manuals/vps/playgroundvps" target="_blank">More info »</a></div>
+			</div>
+		</div>
+
+		<div class="col-md-4 text-center">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">Staging VPS</h2>
+				</div>
+				<div class="panel-body text-center parametry">
+					<p>
+						Virtual server in an environment for development of our virtualization platform <a href="https://kb.vpsfree.org/manuals/vps/vpsadminos" target="_blank">vpsAdminOS</a>.
+						More system resources are available, but also possibility of frequent and unscheduled outages. Lifetime is limited to three months.
+					</p>
+					<table class="table-params">
+							<tr>
+								<td class="doprava">CPU:</td>
+								<td class="dolava"><strong>16&nbsp;cores</strong></td>
+							</tr>
+							<tr>
+								<td class="doprava">RAM:</td>
+								<td class="dolava"><strong>32&nbsp;GB</strong></td>
+							</tr>
+							<tr>
+								<td class="doprava">SSD:</td>
+								<td class="dolava"><strong>320&nbsp;GB</strong></td>
+							</tr>
+							<tr>
+								<td class="doprava">IPv4:</td>
+								<td class="dolava"><strong>1&times;</strong> or upon request</td>
+							</tr>
+							<tr>
+								<td class="doprava">IPv6:</td>
+								<td class="dolava"><strong>/64</strong> or upon request</td>
+							</tr>
+						</table>
+				</div>
+
+				<div class="panel-footer"><a href="https://kb.vpsfree.cz/informace/parametry_vps" target="_blank">More info »</a></div>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="row">
+
+		<div class="col-md-4 text-center">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">NAS storage</h2>
+				</div>
+				<div class="panel-body parametry">
+					<p>In this age of cloud computing and moving data to datacenters you need a lot of disk space.</p>
+					<p>We offer <strong>250&nbsp;GB</strong> of network storage as a part of membership benefits. It is possible to create manual snapshots with respect to the quota. NAS can be expanded as described in <a href="https://kb.vpsfree.org/information/membership_fees" target="_blank">membership fees</a>.</p>
+				</div>
+
+				<div class="panel-footer"><a href="https://kb.vpsfree.org/manuals/vps/datasets" target="_blank">More info »</a></div>
+			</div>
+		</div>
+
+		<div class="col-md-4 text-center">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">Extras</h2>
+				</div>
+				<div class="panel-body parametry">
+					<ul>
+						<li><a href="https://kb.vpsfree.org/manuals/vps/primary_dns" target="_blank">Authoritative DNS servers</a> where you can host records for your domains.</li>
+						<li><a href="https://kb.vpsfree.org/manuals/server/secondary_dns" target="_blank">Secondary DNS servers</a> for when you run a primary server in your VPS.</li>
+						<li><a href="https://kb.vpsfree.cz/informace/projekty/ipv6tunel" target="_blank">IPv6 tunnels</a> when your ISP does not support IPv6 natively (membership is not required).</li>
+					</ul>
+				</div>
+
+				<div class="panel-footer"><a href="https://kb.vpsfree.org" target="_blank">Browse knowledge base »</a></div>
+			</div>
+		</div>
+
+		<div class="col-md-4 text-center">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h2 class="panel-title">Support and community</h2>
+				</div>
+				<div class="panel-body parametry">
+					<ul>
+						<li><a href="https://kb.vpsfree.org/information/where_to_write" target="_blank">Online support</a></li>
+						<li><a href="https://kb.vpsfree.org/information/chat" target="_blank">IRC channel / Matrix room</a></li>
+						<li><a href="https://discourse.vpsfree.cz" target="_blank">Community forum</a></li>
+						<li><a href="https://kb.vpsfree.org/" target="_blank">Knowledge base</a></li>
+					</ul>
+				</div>
+
+				<div class="panel-footer"><a href="https://kb.vpsfree.org/information/communication" target="_blank">More info »</a></div>
+			</div>
+		</div>
+
+	</div>
+
+
+
+
+
+
+</div>
+
+<!--#include virtual="/paticka.html" -->

@@ -1,0 +1,112 @@
+body {
+  padding: 70px 0px 70px 0px;
+}
+
+a {
+	text-decoration: underline;
+}
+
+a:hover {
+	text-decoration: none;
+}
+
+.nav a {
+	outline: none;
+	text-decoration: none;
+}
+
+.navbar-brand {
+	padding: 5.5px 15px;
+}
+
+.panel-heading h2 {
+	color: #1F3959;
+	font-size: 1.5em;
+}
+
+.orange {
+	color: #f6914b;
+}
+
+.wide {
+	width: 100%;
+}
+
+.navbar	{
+	font-size: 18px;
+}
+
+.panel-footer a {
+	color: #1f3959;
+}
+
+.dolava {
+	text-align: left;
+}
+
+.doprava {
+	text-align: right;
+}
+
+.table-params {
+	margin: auto;
+}
+
+.table-params td {
+ padding: 3px;
+}
+
+a.support {
+	font-size:4em;
+	}
+
+@media screen and (max-width: 768px) {
+a.support {
+	font-size:2em;
+	}
+}
+
+.support-logo {
+	margin: 20px;
+}
+
+.invert:hover {
+	-webkit-filter: invert(1);
+	filter: invert(1);
+	filter:progid:DXImageTransform.Microsoft.BasicImage(invert='1');
+}
+
+.parametry {
+	height:18.5em;
+}
+
+.parametry ul {
+	margin: 0;
+	padding: 0;
+}
+
+.parametry li {
+	list-style: none;
+	margin-bottom: 20px;
+}
+
+.zacit {
+	height:22em;
+}
+
+
+.kontakty {
+	height:10em;
+}
+
+input.error, select.error {
+	border: 3px solid #ff0000;
+}
+
+.faq-q {
+	color: #F6914B;
+}
+
+.faq-a {
+	padding-left: 20px;
+}

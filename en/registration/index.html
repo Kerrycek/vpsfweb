@@ -1,0 +1,25 @@
+<!--#set var="h1" value="Registration" -->
+<!--#include virtual="hlavicka.html" -->
+<form action="osoba.php" method="post">
+
+<div class="row">
+	<div class="col-xs-12 form-group">
+		<label for="person">Entity</label>
+		<select class="form-control" id="entity_type" name="entity_type">
+			<option disabled selected>Person or company</option>
+			<option value="fyzicka">Person</option>
+			<option value="pravnicka">Company</option>
+		</select>
+	</div>
+
+</div>
+
+<div id="form-placeholder"></div>
+
+<div class="row">
+  <input class="btn btn-default" type="submit" id="continue" name="continue" value="Continue">
+</div>
+
+</form>
+
+<!--#include virtual="paticka.html" -->
