@@ -111,7 +111,6 @@ describe "vpsFree.cz EN registration form" do
       false => [
         ' ' * 5,
         '123',
-        'hhhh',
       ],
       true => [
         '12345',

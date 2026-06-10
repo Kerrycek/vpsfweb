@@ -497,9 +497,6 @@ class Validators {
 		if (strlen($v) < 4)
 			$ret[] = 'LEN_4';
 
-		if (preg_match('/(.)\1{3,}/u', $v))
-			$ret[] = 'RANDOMTEXT';
-
 		# No more validations for English form
 		if ($this->lang === 'en')
 			return $ret;

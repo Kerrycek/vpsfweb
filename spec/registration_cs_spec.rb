@@ -114,7 +114,6 @@ describe "vpsFree.cz CS/SK registration form" do
         '12',
         '1234',
         '123456',
-        '11111',
       ],
       true => [
         '12345',
