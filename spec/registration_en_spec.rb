@@ -49,17 +49,19 @@ describe "vpsFree.cz EN registration form" do
     name: {
       false => [
         'a',
-        ' ' * 3,
-      ],
-      true => [
         'aa',
         'aaa',
         'Илья́',
         'Алекса́ндрович',
         '立显荣朝士',
+        'hhhh',
+        ' ' * 3,
+      ],
+      true => [
         'nekdo jiny',
         'Nekdo Jiny',
         'nekdo muze mit vice jmen',
+        'Илья́ Алекса́ндрович',
       ],
     },
     birth: {
@@ -80,6 +82,7 @@ describe "vpsFree.cz EN registration form" do
         ' ' * 3,
         'a',
         'Aa',
+        'hhhh',
       ],
       true => [
         'Ulice 4',
@@ -94,6 +97,7 @@ describe "vpsFree.cz EN registration form" do
         ' ' * 3,
         '123 456',
         'a',
+        'hhhh',
       ],
       true => [
         'Aš',
@@ -106,6 +110,8 @@ describe "vpsFree.cz EN registration form" do
     zip: {
       false => [
         ' ' * 5,
+        '123',
+        'hhhh',
       ],
       true => [
         '12345',
@@ -150,6 +156,7 @@ describe "vpsFree.cz EN registration form" do
         ' ' * 3,
         'A',
         'Aa',
+        'hhhh',
       ],
       true => [
         'Aaa',

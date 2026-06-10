@@ -7,19 +7,21 @@ class RegistrationForm {
 	private $errors = array();
 	private $data;
 	private $entityType;
+	private $initial;
 
 	public function __construct($lang, $data = null) {
 		$this->lang = $lang;
 		$this->initial = array();
 		$this->data = $this->clean($data);
 
-		$param = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY));
+		$query = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+		$param = trim($query ? $query : '');
 
 		if ($param) {
 			list($id, $token) = $this->parseToken($param);
 			$this->initial = $this->fetchData($id, $token);
 
-		} elseif ($data && $data['id']) {
+		} elseif ($data && !empty($data['id'])) {
 			$this->initial = $this->fetchData($data['id'], $data['token']);
 		}
 	}
@@ -193,6 +195,101 @@ class RegistrationForm {
 			foreach ($errors as $e)
 				$this->errors[$field][] = $this->trError($e);
 		}
+
+		if (!$this->isValidationTest())
+			$this->validateAntispam();
+	}
+
+	protected function validateAntispam() {
+		if (!empty($this->data['website'])) {
+			$this->errors['form'] = array($this->trError('EFAILED'));
+			return;
+		}
+
+		if (
+			empty($this->data['form_started_at']) ||
+			!ctype_digit($this->data['form_started_at']) ||
+			time() - intval($this->data['form_started_at']) < 5
+		)
+			$this->errors['form'] = array($this->trError('ETOOSOON'));
+
+		if (!array_key_exists('form', $this->errors) && !$this->checkRateLimit())
+			$this->errors['form'] = array($this->trError('ERATELIMIT'));
+	}
+
+	protected function checkRateLimit() {
+		$ip = $this->remoteIp();
+
+		if (!$ip)
+			return true;
+
+		$key = $this->rateLimitKey($ip);
+		$path = sys_get_temp_dir().'/vpsfree-registration-rate-limit.json';
+		$now = time();
+		$hourAgo = $now - 3600;
+		$dayAgo = $now - 86400;
+		$limits = array('hour' => 3, 'day' => 10);
+		$data = array();
+
+		if (is_readable($path)) {
+			$json = file_get_contents($path);
+			$decoded = json_decode($json, true);
+
+			if (is_array($decoded))
+				$data = $decoded;
+		}
+
+		foreach ($data as $k => $attempts) {
+			$data[$k] = array_values(array_filter($attempts, function ($ts) use ($dayAgo) {
+				return $ts >= $dayAgo;
+			}));
+
+			if (count($data[$k]) == 0)
+				unset($data[$k]);
+		}
+
+		$attempts = isset($data[$key]) ? $data[$key] : array();
+		$hourAttempts = array_filter($attempts, function ($ts) use ($hourAgo) {
+			return $ts >= $hourAgo;
+		});
+
+		if (count($hourAttempts) >= $limits['hour'] || count($attempts) >= $limits['day'])
+			return false;
+
+		$attempts[] = $now;
+		$data[$key] = $attempts;
+		file_put_contents($path, json_encode($data), LOCK_EX);
+
+		return true;
+	}
+
+	protected function remoteIp() {
+		if (!empty($_SERVER['HTTP_CF_CONNECTING_IP']))
+			return $_SERVER['HTTP_CF_CONNECTING_IP'];
+
+		if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+			$ips = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+			return trim($ips[0]);
+		}
+
+		if (!empty($_SERVER['REMOTE_ADDR']))
+			return $_SERVER['REMOTE_ADDR'];
+
+		return null;
+	}
+
+	protected function rateLimitKey($ip) {
+		if (strpos($ip, ':') === false)
+			return $ip;
+
+		$packed = @inet_pton($ip);
+
+		if ($packed === false)
+			return $ip;
+
+		$hex = bin2hex($packed);
+
+		return substr($hex, 0, 16).'::/64';
 	}
 
 	protected function parseToken($v) {
@@ -255,6 +352,7 @@ class RegistrationForm {
 class Validators {
 	public $errors = array();
 	public $fields;
+	private $lang;
 	private $db;
 
 	public function __construct($lang, $fields) {
@@ -283,7 +381,7 @@ class Validators {
 	public function login($v) {
 		$ret = array();
 
-		if (!preg_match('/^[a-zA-Z0-9\-\.]{2,63}$/', $v))
+		if (!preg_match('/^[a-zA-Z0-9\-\.]{3,63}$/', $v))
 			$ret[] = 'NOTLOGIN';
 
 		if (preg_match('/\.\./', $v))
@@ -292,17 +390,26 @@ class Validators {
 		if (preg_match('/--/', $v))
 			$ret[] = 'TWOHYPHENS';
 
+		if (preg_match('/(.)\1{3,}/u', $v))
+			$ret[] = 'RANDOMTEXT';
+
 		return $ret;
 	}
 
 	public function name($v) {
 		$ret = array();
 
-		if (strlen($v) < 2)
-			$ret[] = 'LEN_2';
+		if (strlen($v) < 5)
+			$ret[] = 'LEN_5';
 
 		if (preg_match('/\d/', $v))
 			$ret[] = 'NOTNUM';
+
+		if (count($this->words($v)) < 2)
+			$ret[] = 'FULLNAME';
+
+		if (preg_match('/(.)\1{3,}/u', $v))
+			$ret[] = 'RANDOMTEXT';
 
 		return $ret;
 	}
@@ -348,8 +455,11 @@ class Validators {
 	public function address($v) {
 		$ret = array();
 
-		if (strlen($v) < 2)
-			$ret[] = 'LEN_2';
+		if (strlen($v) < 5)
+			$ret[] = 'LEN_5';
+
+		if ($this->looksRandom($v))
+			$ret[] = 'RANDOMTEXT';
 
 		# No more validations for English form
 		if ($this->lang === 'en')
@@ -367,6 +477,12 @@ class Validators {
 		if (strlen($v) < 2)
 			$ret[] = 'LEN_2';
 
+		if (preg_match('/\d/', $v) && !preg_match('/[^\W\d_]/u', $v))
+			$ret[] = 'NOTNUM';
+
+		if (preg_match('/(.)\1{3,}/u', $v))
+			$ret[] = 'RANDOMTEXT';
+
 		return $ret;
 	}
 
@@ -378,12 +494,21 @@ class Validators {
 		if (!$v)
 			$ret[] = 'NOTEMPTY';
 
+		if (strlen($v) < 4)
+			$ret[] = 'LEN_4';
+
+		if (preg_match('/(.)\1{3,}/u', $v))
+			$ret[] = 'RANDOMTEXT';
+
 		# No more validations for English form
 		if ($this->lang === 'en')
 			return $ret;
 
 		if (preg_match('/\D/', $v))
 			$ret[] = 'NUMONLY';
+
+		if (strlen($v) != 5)
+			$ret[] = 'LEN_5_EXACT';
 
 		return $ret;
 	}
@@ -397,14 +522,22 @@ class Validators {
 		if (preg_match('/\d/', $v))
 			$ret[] = 'NOTNUM';
 
+		if ($this->looksRandom($v))
+			$ret[] = 'RANDOMTEXT';
+
 		return $ret;
 	}
 
 	public function org_name($v) {
-		if (strlen($v) < 2)
-			return 'LEN_2';
+		$ret = array();
 
-		return true;
+		if (strlen($v) < 3)
+			$ret[] = 'LEN_3';
+
+		if ($this->looksRandom($v))
+			$ret[] = 'RANDOMTEXT';
+
+		return $ret;
 	}
 
 	public function ic($v) {
@@ -438,5 +571,64 @@ class Validators {
 			return 'NOTSELECTED';
 
 		return true;
+	}
+
+	function how($v) {
+		if (!$v)
+			return true;
+
+		if (strlen($v) < 4)
+			return 'LEN_4';
+
+		if ($this->looksRandom($v))
+			return 'RANDOMTEXT';
+
+		return true;
+	}
+
+	function note($v) {
+		if (!$v)
+			return true;
+
+		if (strlen($v) < 4)
+			return 'LEN_4';
+
+		if ($this->looksRandom($v))
+			return 'RANDOMTEXT';
+
+		return true;
+	}
+
+	private function words($v) {
+		$words = preg_split('/[\s,]+/u', trim($v), -1, PREG_SPLIT_NO_EMPTY);
+
+		return array_filter($words, function ($word) {
+			return preg_match('/[^\W\d_]{2,}/u', $word);
+		});
+	}
+
+	private function looksRandom($v) {
+		$v = trim($v);
+
+		if ($v === '')
+			return false;
+
+		if (preg_match('/(.)\1{3,}/u', $v))
+			return true;
+
+		$compact = preg_replace('/[^a-zA-Z0-9]/', '', $v);
+
+		if (strlen($compact) >= 6 && !preg_match('/[aeiouyAEIOUY]/', $compact))
+			return true;
+
+		if (strlen($compact) >= 8 && preg_match('/^[a-zA-Z0-9]+$/', $v)) {
+			$letters = preg_match_all('/[a-zA-Z]/', $compact);
+			$digits = preg_match_all('/\d/', $compact);
+
+			if ($letters > 0 && $digits > 0)
+				return true;
+		}
+
+		return false;
 	}
 }

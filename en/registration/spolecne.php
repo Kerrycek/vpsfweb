@@ -19,6 +19,12 @@ $locations = $api->location->list(array(
 ));
 ?>
 
+<div style="position: absolute; left: -10000px;" aria-hidden="true">
+	<label for="website">Website</label>
+	<input type="text" id="website" name="website" value="" tabindex="-1" autocomplete="off">
+</div>
+<input type="hidden" name="form_started_at" value="<?php echo time(); ?>">
+
 <label for="name">Additional info</label>
 <div class="row">
 	<div class="col-xs-12 form-group">
