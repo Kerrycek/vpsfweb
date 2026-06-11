@@ -5,6 +5,7 @@ type RegistrationPaths = {
   name: string;
   formPath: string;
   ajaxFormPath: string;
+  companyAjaxFormPath: string;
   sendPath: string;
   invalidTokenText: RegExp;
   tooSoonText: RegExp;
@@ -32,6 +33,7 @@ const FORMS: RegistrationPaths[] = [
     name: 'cs',
     formPath: '/prihlaska/',
     ajaxFormPath: '/prihlaska/fyzicka-osoba/form.php',
+    companyAjaxFormPath: '/prihlaska/pravnicka-osoba/form.php',
     sendPath: '/prihlaska/send.php',
     invalidTokenText: /platnost formuláře nelze ověřit/i,
     tooSoonText: /odeslán příliš rychle/i,
@@ -43,6 +45,7 @@ const FORMS: RegistrationPaths[] = [
     name: 'en',
     formPath: '/registration/',
     ajaxFormPath: '/registration/fyzicka-osoba/form.php',
+    companyAjaxFormPath: '/registration/pravnicka-osoba/form.php',
     sendPath: '/registration/send.php',
     invalidTokenText: /form validity cannot be verified/i,
     tooSoonText: /submitted too quickly/i,
@@ -131,6 +134,7 @@ for (const form of FORMS) {
 
     const state = await loadForm(request, form);
     await waitForAntispamDelay();
+    clearRateLimit();
 
     const data = validData(state);
     data.set('_mock', '1');
@@ -142,6 +146,59 @@ for (const form of FORMS) {
     expect(html).toMatch(form.acceptedText);
   });
 
+  test(`${form.name}: legal entity mocked submit passes with organization fields`, async ({ request }) => {
+    test.skip(!RUN_MUTATING_TESTS, 'Run only against a dev server with REGISTRATION_FORM_TEST_MODE=1 so _mock prevents real registrations.');
+
+    const state = await loadForm(request, form, form.companyAjaxFormPath);
+    await waitForAntispamDelay();
+    clearRateLimit();
+
+    const data = validData(state, {
+      entity_type: 'pravnicka',
+      login: uniqueLogin('co'),
+      name: form.name === 'cs' ? 'Jan Testovac' : 'John Tester',
+      email: uniqueEmail('company'),
+      org_name: form.name === 'cs' ? 'Codex Test sro' : 'Codex Test Ltd',
+      ic: '12345678',
+      address: form.name === 'cs' ? 'Anenska 1' : '221B Baker Street',
+      city: form.name === 'cs' ? 'Decin' : 'London',
+      zip: form.name === 'cs' ? '40502' : 'NW1 6XE',
+      country: form.name === 'cs' ? 'CZ' : 'United Kingdom',
+      how: 'Playwright legal entity test',
+      note: 'company registration smoke',
+    });
+    data.set('_mock', '1');
+
+    const response = await postForm(request, form, data);
+    const html = await response.text();
+
+    expect(response.status()).toBeLessThan(400);
+    expect(html).toMatch(form.acceptedText);
+  });
+
+  test(`${form.name}: legal entity without ID is rejected`, async ({ request }) => {
+    const state = await loadForm(request, form, form.companyAjaxFormPath);
+    await waitForAntispamDelay();
+
+    const data = validData(state, {
+      entity_type: 'pravnicka',
+      login: uniqueLogin('co'),
+      name: form.name === 'cs' ? 'Jan Testovac' : 'John Tester',
+      email: uniqueEmail('company-bad'),
+      org_name: form.name === 'cs' ? 'Codex Test sro' : 'Codex Test Ltd',
+      ic: '',
+      how: 'Playwright legal entity negative test',
+    });
+    data.set('_mock', '1');
+
+    const response = await postForm(request, form, data);
+    const html = await response.text();
+
+    expect(response.status()).toBe(200);
+    expect(html).not.toMatch(form.acceptedText);
+    expect(html).toMatch(/alert-danger|error/);
+  });
+
   test(`${form.name}: changing X-Forwarded-For does not evade rate limit`, async ({ request }) => {
     test.skip(
       !RUN_MUTATING_TESTS || !RUN_RATE_LIMIT_TESTS,
@@ -150,6 +207,7 @@ for (const form of FORMS) {
 
     const state = await loadForm(request, form);
     await waitForAntispamDelay();
+    clearRateLimit();
 
     for (let i = 0; i < 4; i++) {
       const data = validData(state, {
@@ -268,8 +326,8 @@ for (const form of FORMS) {
   });
 }
 
-async function loadForm(request: APIRequestContext, form: RegistrationPaths): Promise<FormState> {
-  const response = await request.get(new URL(form.ajaxFormPath, BASE_URL).toString());
+async function loadForm(request: APIRequestContext, form: RegistrationPaths, path = form.ajaxFormPath): Promise<FormState> {
+  const response = await request.get(new URL(path, BASE_URL).toString());
   expect(response.ok()).toBeTruthy();
 
   const html = await response.text();
