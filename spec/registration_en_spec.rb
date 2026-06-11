@@ -1,4 +1,5 @@
 require "json"
+require "date"
 require "selenium-webdriver"
 require "rspec"
 include RSpec::Expectations
@@ -71,10 +72,10 @@ describe "vpsFree.cz EN registration form" do
         '12',
         '123',
         '1900',
-        '2016',
+        (Date.today.year - 5).to_s,
       ],
       true => [
-        '1999',
+        (Date.today.year - 18).to_s,
       ],
     },
     address: {
