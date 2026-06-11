@@ -1,4 +1,5 @@
 import { expect, test, APIRequestContext } from 'playwright/test';
+import { execSync } from 'node:child_process';
 
 type RegistrationPaths = {
   name: string;
@@ -24,6 +25,7 @@ type FormState = {
 const BASE_URL = process.env.REGISTRATION_BASE_URL ?? 'http://web.crucio.cz';
 const RUN_MUTATING_TESTS = process.env.REGISTRATION_FORM_TEST_MODE === '1';
 const RUN_RATE_LIMIT_TESTS = process.env.RUN_RATE_LIMIT_TESTS === '1';
+const RATE_LIMIT_CLEAR_COMMAND = process.env.REGISTRATION_RATE_LIMIT_CLEAR_COMMAND;
 
 const FORMS: RegistrationPaths[] = [
   {
@@ -179,6 +181,93 @@ test('cs browser flow: immediate user submit shows timing error', async ({ page 
   await expect(page.locator('.alert-danger')).toContainText(/příliš rychle/i);
 });
 
+const POSTAL_POSITIVE_CASES = [
+  { country: 'United Kingdom', zip: 'NW1 6XE', address: '221B Baker Street', city: 'London' },
+  { country: 'Japan', zip: '131-0045', address: '1 Chome-1-2 Oshiage', city: 'Tokyo' },
+  { country: 'Brazil', zip: '01310-200', address: 'Avenida Paulista 1578', city: 'Sao Paulo' },
+  { country: 'Australia', zip: '2000', address: '1 Macquarie Street', city: 'Sydney' },
+  { country: 'Singapore', zip: '018956', address: '10 Bayfront Avenue', city: 'Singapore' },
+  { country: 'Czech Republic', zip: '12345', address: 'Krakovska 583/9', city: 'Praha' },
+  { country: 'Czechia', zip: '123 45', address: 'Krakovska 583/9', city: 'Praha' },
+  { country: 'Slovakia', zip: '12345', address: 'Namestie SNP 12', city: 'Bratislava' },
+  { country: 'Slovensko', zip: '123 45', address: 'Namestie SNP 12', city: 'Bratislava' },
+  { country: 'Uganda', zip: 'N/A', address: 'Plot 2 Kampala Road', city: 'Kampala' },
+];
+
+const POSTAL_NEGATIVE_CASES = [
+  { country: 'Czech Republic', zip: 'ABCDE', address: 'Krakovska 583/9', city: 'Praha' },
+  { country: 'Slovakia', zip: 'ABCDE', address: 'Namestie SNP 12', city: 'Bratislava' },
+  { country: 'Atlantis', zip: '------', address: 'Ocean 123', city: 'Poseidon' },
+  { country: 'Atlantis', zip: '12345678901234567890', address: 'Ocean 123', city: 'Poseidon' },
+  { country: 'Atlantis', zip: '<script>alert(1)</script>', address: 'Ocean 123', city: 'Poseidon' },
+  { country: 'Uganda', zip: '256', address: 'Plot 2 Kampala Road', city: 'Kampala' },
+];
+
+for (const form of FORMS) {
+  test(`${form.name}: country-aware postal codes accept valid foreign formats`, async ({ request }) => {
+    test.skip(
+      !RUN_MUTATING_TESTS || !RATE_LIMIT_CLEAR_COMMAND,
+      'Run only against isolated dev with REGISTRATION_FORM_TEST_MODE=1 and REGISTRATION_RATE_LIMIT_CLEAR_COMMAND.',
+    );
+
+    const state = await loadForm(request, form);
+    await waitForAntispamDelay();
+
+    for (const postalCase of POSTAL_POSITIVE_CASES) {
+      clearRateLimit();
+
+      const data = validData(state, {
+        login: uniqueLogin('pc'),
+        email: uniqueEmail('postal-ok'),
+        address: postalCase.address,
+        city: postalCase.city,
+        zip: postalCase.zip,
+        country: postalCase.country,
+        how: `Postal positive ${postalCase.country}`,
+      });
+      data.set('_mock', '1');
+
+      const response = await postForm(request, form, data);
+      const html = await response.text();
+
+      expect(response.status(), `${form.name} ${postalCase.country} ${postalCase.zip}`).toBeLessThan(400);
+      expect(html, `${form.name} ${postalCase.country} ${postalCase.zip}`).toMatch(form.acceptedText);
+    }
+  });
+
+  test(`${form.name}: country-aware postal codes reject malformed values`, async ({ request }) => {
+    test.skip(
+      !RUN_MUTATING_TESTS || !RATE_LIMIT_CLEAR_COMMAND,
+      'Run only against isolated dev with REGISTRATION_FORM_TEST_MODE=1 and REGISTRATION_RATE_LIMIT_CLEAR_COMMAND.',
+    );
+
+    const state = await loadForm(request, form);
+    await waitForAntispamDelay();
+
+    for (const postalCase of POSTAL_NEGATIVE_CASES) {
+      clearRateLimit();
+
+      const data = validData(state, {
+        login: uniqueLogin('pn'),
+        email: uniqueEmail('postal-bad'),
+        address: postalCase.address,
+        city: postalCase.city,
+        zip: postalCase.zip,
+        country: postalCase.country,
+        how: `Postal negative ${postalCase.country}`,
+      });
+      data.set('_mock', '1');
+
+      const response = await postForm(request, form, data);
+      const html = await response.text();
+
+      expect(response.status(), `${form.name} ${postalCase.country} ${postalCase.zip}`).toBe(200);
+      expect(html, `${form.name} ${postalCase.country} ${postalCase.zip}`).not.toMatch(form.acceptedText);
+      expect(html, `${form.name} ${postalCase.country} ${postalCase.zip}`).toMatch(/alert-danger|error/);
+    }
+  });
+}
+
 async function loadForm(request: APIRequestContext, form: RegistrationPaths): Promise<FormState> {
   const response = await request.get(new URL(form.ajaxFormPath, BASE_URL).toString());
   expect(response.ok()).toBeTruthy();
@@ -295,4 +384,10 @@ function escapeRegExp(value: string): string {
 
 async function waitForAntispamDelay() {
   await new Promise((resolve) => setTimeout(resolve, 5500));
+}
+
+function clearRateLimit() {
+  if (RATE_LIMIT_CLEAR_COMMAND) {
+    execSync(RATE_LIMIT_CLEAR_COMMAND, { stdio: 'ignore' });
+  }
 }

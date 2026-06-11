@@ -631,7 +631,7 @@ class Validators {
 			if (!method_exists($this, $f))
 				continue;
 
-			$ret = call_user_func(array($this, $f), $data[$f]);
+			$ret = call_user_func(array($this, $f), $data[$f], $data);
 
 			if ($ret === true || (is_array($ret) && count($ret) == 0))
 				continue;
@@ -752,28 +752,145 @@ class Validators {
 		return $ret;
 	}
 
-	public function zip($v) {
+	public function zip($v, $data = array()) {
 		$ret = array();
+		$v = trim($v);
+		$country = $this->normalizeCountryForPostalCode(
+			isset($data['country']) ? $data['country'] : ''
+		);
 
-		$v = preg_replace('/\s/', '', $v);
+		if ($this->postalCodeOptional($country))
+			return $this->validateOptionalPostalCode($v);
 
 		if (!$v)
 			$ret[] = 'NOTEMPTY';
 
-		if (strlen($v) < 4)
-			$ret[] = 'LEN_4';
-
-		# No more validations for English form
-		if ($this->lang === 'en')
+		if ($v === '')
 			return $ret;
 
-		if (preg_match('/\D/', $v))
-			$ret[] = 'NUMONLY';
+		switch ($country) {
+		case 'CZ':
+		case 'SK':
+			if (!preg_match('/^\d{3}\s?\d{2}$/', $v)) {
+				if (preg_match('/\D/', preg_replace('/\s/', '', $v)))
+					$ret[] = 'NUMONLY';
 
-		if (strlen($v) != 5)
-			$ret[] = 'LEN_5_EXACT';
+				$ret[] = 'LEN_5_EXACT';
+			}
+			break;
+
+		case 'GB':
+			if (!preg_match('/^(GIR\s?0AA|[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2})$/i', $v))
+				$ret[] = 'POSTALCODE';
+			break;
+
+		case 'JP':
+			if (!preg_match('/^\d{3}-?\d{4}$/', $v))
+				$ret[] = 'POSTALCODE';
+			break;
+
+		case 'BR':
+			if (!preg_match('/^\d{5}-?\d{3}$/', $v))
+				$ret[] = 'POSTALCODE';
+			break;
+
+		case 'AU':
+			if (!preg_match('/^\d{4}$/', $v))
+				$ret[] = 'POSTALCODE';
+			break;
+
+		case 'SG':
+			if (!preg_match('/^\d{6}$/', $v))
+				$ret[] = 'POSTALCODE';
+			break;
+
+		default:
+			$ret = array_merge($ret, $this->validateGenericPostalCode($v));
+			break;
+		}
 
 		return $ret;
+	}
+
+	private function normalizeCountryForPostalCode($country) {
+		$country = trim($country);
+
+		if ($country === '')
+			return null;
+
+		$key = strtolower($this->removeDiacritics($country));
+		$key = preg_replace('/[^a-z0-9]+/', ' ', $key);
+		$key = trim(preg_replace('/\s+/', ' ', $key));
+
+		$aliases = array(
+			'CZ' => array('cz', 'cesko', 'ceska republika', 'czech republic', 'czechia'),
+			'SK' => array('sk', 'slovensko', 'slovakia', 'slovak republic'),
+			'GB' => array('gb', 'uk', 'united kingdom', 'great britain', 'britain', 'england'),
+			'JP' => array('jp', 'japan', 'japonsko'),
+			'BR' => array('br', 'brazil', 'brasil', 'brazilie'),
+			'AU' => array('au', 'australia', 'australie'),
+			'SG' => array('sg', 'singapore', 'singapur'),
+			'UG' => array('ug', 'uganda'),
+		);
+
+		foreach ($aliases as $code => $names) {
+			if (in_array($key, $names, true))
+				return $code;
+		}
+
+		return null;
+	}
+
+	private function postalCodeOptional($country) {
+		return in_array($country, array('UG'), true);
+	}
+
+	private function validateOptionalPostalCode($v) {
+		if ($v === '' || strtolower($v) === 'n/a')
+			return array();
+
+		return array('POSTALCODE');
+	}
+
+	private function validateGenericPostalCode($v) {
+		$ret = array();
+
+		if ($v === '') {
+			$ret[] = 'NOTEMPTY';
+			return $ret;
+		}
+
+		if (strlen($v) < 2 || strlen($v) > 16)
+			$ret[] = 'POSTALCODE';
+
+		if (!preg_match('/[a-z0-9]/i', $v))
+			$ret[] = 'POSTALCODE';
+
+		if (!preg_match('/^[a-z0-9][a-z0-9 -]*[a-z0-9]$/i', $v))
+			$ret[] = 'POSTALCODE';
+
+		if (preg_match('/(.)\1{3,}/', $v))
+			$ret[] = 'RANDOMTEXT';
+
+		return array_values(array_unique($ret));
+	}
+
+	private function removeDiacritics($v) {
+		if (function_exists('iconv')) {
+			$ret = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $v);
+
+			if ($ret !== false)
+				return $ret;
+		}
+
+		return strtr($v, array(
+			'á' => 'a', 'č' => 'c', 'ď' => 'd', 'é' => 'e', 'ě' => 'e',
+			'í' => 'i', 'ň' => 'n', 'ó' => 'o', 'ř' => 'r', 'š' => 's',
+			'ť' => 't', 'ú' => 'u', 'ů' => 'u', 'ý' => 'y', 'ž' => 'z',
+			'Á' => 'A', 'Č' => 'C', 'Ď' => 'D', 'É' => 'E', 'Ě' => 'E',
+			'Í' => 'I', 'Ň' => 'N', 'Ó' => 'O', 'Ř' => 'R', 'Š' => 'S',
+			'Ť' => 'T', 'Ú' => 'U', 'Ů' => 'U', 'Ý' => 'Y', 'Ž' => 'Z',
+		));
 	}
 
 	public function country($v) {
